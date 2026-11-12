@@ -92,6 +92,19 @@ button:focus-visible{outline:3px solid var(--hot);outline-offset:3px}
   </section>
   <p class="foot">Just for fun. The fire has never been right about anything.</p>
 </main>
+<script type="module">
+import {initializeApp} from "https://www.gstatic.com/firebasejs/10.12.2/firebase-app.js";
+import {getFirestore,collection,addDoc,serverTimestamp} from "https://www.gstatic.com/firebasejs/10.12.2/firebase-firestore.js";
+const firebaseConfig={apiKey:"AIzaSyClYIN-WIfVu1pQVRpiDWpsbvDYz7QvBnA",authDomain:"flames-unfav.firebaseapp.com",projectId:"flames-unfav",storageBucket:"flames-unfav.firebasestorage.app",messagingSenderId:"625847407648",appId:"1:625847407648:web:aa0977999e4b580fe6d845"};
+let db=null;
+try{if(!firebaseConfig.apiKey.startsWith("PASTE"))db=getFirestore(initializeApp(firebaseConfig))}catch(e){console.warn(e)}
+/* Saves one document per game in the "plays" collection */
+window.saveNames=async(name1,name2,result)=>{
+  if(!db)return;
+  try{await addDoc(collection(db,"plays"),{name1,name2,result,createdAt:serverTimestamp()})}
+  catch(e){console.warn("Save failed",e)}
+};
+</script>
 <script>
 const $=s=>document.querySelector(s),RM=matchMedia('(prefers-reduced-motion: reduce)').matches;
 const R={F:['Friends','🤝','Easy laughs, zero drama, and a bond that lasts.'],L:['Love','💘','Sparks everywhere. The fire definitely ships it.'],A:['Affection','🥰','A warm, caring bond. You really look out for each other.'],M:['Marriage','💍','Whoa. The flames see a long future together.'],E:['Enemies','⚔️','Fiery clashes ahead. Try not to start a prank war.'],S:['Siblings','🫶','Like family: you’ll bicker, and still have each other’s back.']};
@@ -155,6 +168,7 @@ async function play(){
   const left=a.length+b.length-2*pairs.length;
   if(!left){
     cap.textContent='Every letter cancelled out. Try two different names.';
+    window.saveNames&&saveNames(names[0],names[1],'none');
     hint.hidden=true;busy=false;$('#go').disabled=false;return;
   }
   await sleep(400);
@@ -184,6 +198,7 @@ async function play(){
 
   const key='FLAMES'[alive[0]],[word,emo,note]=R[key];
   tiles[alive[0]].classList.add('win');
+  window.saveNames&&saveNames(names[0],names[1],word);
   cap.textContent='The fire has spoken.';hint.hidden=true;
   await sleep(700);
   res.innerHTML=`<div class="emo">${emo}</div><div class="word">${word}</div><p class="who"></p><p class="note">${note}</p><button id="again" class="ghost" type="button">Play again</button>`;
